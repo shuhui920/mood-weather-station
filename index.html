@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>早安心情氣象站</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" async></script>
 <style>
   * { box-sizing: border-box; }
   html, body {
@@ -347,7 +346,6 @@ function showError(msg) {
    ================================ */
 var SUPABASE_URL = 'https://deebjpgtujatpefucajc.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_voo5n0P60X6L4QGjAUNqLQ_bLW9lIe8';
-var supabase = null;
 
 var MOODS = {
   sunny:  { emoji:'☀️', name:'大晴天', color:'#fff8e1', desc:'超級開心 / 充滿活力' },
@@ -412,39 +410,69 @@ var currentLevel = null;
 var currentNote = '';
 
 /* ================================
-   初始化（安全模式）
+   Supabase 原生呼叫（不用外部函式庫）
    ================================ */
-function initSupabase() {
+function apiGet(endpoint, onSuccess, onError) {
   try {
-    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      console.log('Supabase 連線成功');
-    } else {
-      supabase = makeFakeSupabase();
-      showError('資料庫連線尚未就緒，遊戲可以繼續玩，但紀錄暫時不會儲存。');
-    }
+    var url = SUPABASE_URL + '/rest/v1/' + endpoint;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try {
+            var data = JSON.parse(xhr.responseText);
+            if (onSuccess) onSuccess(data);
+          } catch (e) {
+            if (onError) onError(e);
+          }
+        } else {
+          if (onError) onError(new Error('HTTP ' + xhr.status));
+        }
+      }
+    };
+    xhr.onerror = function() {
+      if (onError) onError(new Error('網路錯誤'));
+    };
+    xhr.send();
   } catch (e) {
-    supabase = makeFakeSupabase();
-    showError('資料庫連線遇到問題，遊戲可以繼續玩！');
-    console.error(e);
+    if (onError) onError(e);
   }
 }
 
-function makeFakeSupabase() {
-  return {
-    from: function() {
-      return {
-        select: function() {
-          return new Promise(function(resolve) { resolve({ data: [], error: null }); });
-        },
-        insert: function() {
-          return new Promise(function(resolve) { resolve({ data: null, error: null }); });
+function apiPost(endpoint, body, onSuccess, onError) {
+  try {
+    var url = SUPABASE_URL + '/rest/v1/' + endpoint;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Prefer', 'return=minimal');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 201 || xhr.status === 200) {
+          if (onSuccess) onSuccess();
+        } else {
+          if (onError) onError(new Error('HTTP ' + xhr.status + ': ' + xhr.responseText));
         }
-      };
-    }
-  };
+      }
+    };
+    xhr.onerror = function() {
+      if (onError) onError(new Error('網路錯誤'));
+    };
+    xhr.send(JSON.stringify(body));
+  } catch (e) {
+    if (onError) onError(e);
+  }
 }
 
+/* ================================
+   初始化
+   ================================ */
 function buildMoodGrid() {
   var grid = document.getElementById('moodGrid');
   if (!grid) return;
@@ -482,7 +510,6 @@ function buildLevelGrid() {
 
 function initApp() {
   try {
-    initSupabase();
     var saved = localStorage.getItem('moodSeat');
     if (saved) {
       document.getElementById('seatInput').value = saved;
@@ -502,7 +529,7 @@ if (document.readyState === 'loading') {
 }
 
 /* ================================
-   流程控制（帶防錯）
+   流程控制
    ================================ */
 function show(id) {
   try {
@@ -601,26 +628,27 @@ function submitMood() {
   var response = result.response;
   var advice = result.advice;
 
-  // 儲存到 Supabase（Promise 寫法，不阻塞畫面）
-  try {
-    if (supabase && supabase.from) {
-      supabase.from('mood_records').insert({
-        seat_number: currentSeat,
-        mood: currentMood,
-        mood_level: currentLevel,
-        note: currentNote || null,
-        ai_response: response,
-        advice: advice,
-        record_date: new Date().toISOString().slice(0,10)
-      }).then(function() {
-        console.log('儲存成功');
-      }).catch(function(err) {
-        console.error('儲存失敗', err);
-      });
-    }
-  } catch (e) {
-    console.error('儲存失敗', e);
-  }
+  // 儲存到 Supabase
+  var today = new Date();
+  var yyyy = today.getFullYear();
+  var mm = ('0' + (today.getMonth() + 1)).slice(-2);
+  var dd = ('0' + today.getDate()).slice(-2);
+  var recordDate = yyyy + '-' + mm + '-' + dd;
+
+  apiPost('mood_records', {
+    seat_number: currentSeat,
+    mood: currentMood,
+    mood_level: currentLevel,
+    note: currentNote || null,
+    ai_response: response,
+    advice: advice,
+    record_date: recordDate
+  }, function() {
+    console.log('儲存成功');
+  }, function(err) {
+    console.error('儲存失敗', err);
+    showError('儲存失敗：' + err.message);
+  });
 
   var m = MOODS[currentMood];
   var badge = BADGES[currentMood];
@@ -674,60 +702,53 @@ function showTodayBoard() {
   bc.innerHTML = '<div style="color:#888;">正在載入...</div>';
   ht.innerHTML = '';
 
-  function renderData(data) {
-    if (!data || data.length === 0) {
-      bc.innerHTML = '<div style="color:#888;">今天還沒有人登錄心情喔，快來當第一個！</div>';
-      ht.innerHTML = '';
-      return;
-    }
+  var today = new Date();
+  var yyyy = today.getFullYear();
+  var mm = ('0' + (today.getMonth() + 1)).slice(-2);
+  var dd = ('0' + today.getDate()).slice(-2);
+  var recordDate = yyyy + '-' + mm + '-' + dd;
 
-    var counts = {};
-    for (var i = 0; i < data.length; i++) {
-      var d = data[i];
-      counts[d.mood] = (counts[d.mood] || 0) + 1;
-    }
-    bc.innerHTML = '';
-    var countKeys = Object.keys(counts);
-    for (var i = 0; i < countKeys.length; i++) {
-      var k = countKeys[i];
-      var c = counts[k];
-      var m = MOODS[k];
-      var chip = document.createElement('div');
-      chip.className = 'weather-chip';
-      chip.innerHTML = m.emoji + ' ' + m.name + ' <strong>' + c + '</strong> 人';
-      bc.appendChild(chip);
-    }
+  apiGet(
+    'mood_records?select=*&record_date=eq.' + recordDate + '&order=created_at.asc',
+    function(data) {
+      if (!data || data.length === 0) {
+        bc.innerHTML = '<div style="color:#888;">今天還沒有人登錄心情喔，快來當第一個！</div>';
+        ht.innerHTML = '';
+        return;
+      }
 
-    var rows = '<tr><th>座號</th><th>天氣</th><th>強度</th><th>時間</th></tr>';
-    for (var i = 0; i < data.length; i++) {
-      var d = data[i];
-      var m = MOODS[d.mood];
-      var lv = LEVELS[(d.mood_level || 1) - 1].label;
-      var t = new Date(d.created_at).toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
-      rows += '<tr><td>' + d.seat_number + '</td><td>' + m.emoji + ' ' + m.name + '</td><td>' + lv + '</td><td>' + t + '</td></tr>';
-    }
-    ht.innerHTML = rows;
-  }
+      var counts = {};
+      for (var i = 0; i < data.length; i++) {
+        var d = data[i];
+        counts[d.mood] = (counts[d.mood] || 0) + 1;
+      }
+      bc.innerHTML = '';
+      var countKeys = Object.keys(counts);
+      for (var i = 0; i < countKeys.length; i++) {
+        var k = countKeys[i];
+        var c = counts[k];
+        var m = MOODS[k];
+        var chip = document.createElement('div');
+        chip.className = 'weather-chip';
+        chip.innerHTML = m.emoji + ' ' + m.name + ' <strong>' + c + '</strong> 人';
+        bc.appendChild(chip);
+      }
 
-  try {
-    if (supabase && supabase.from) {
-      supabase.from('mood_records')
-        .select('*')
-        .eq('record_date', new Date().toISOString().slice(0,10))
-        .order('created_at', { ascending: true })
-        .then(function(result) {
-          renderData(result.data || []);
-        }).catch(function(err) {
-          console.error(err);
-          bc.innerHTML = '<div style="color:#c62828;">載入失敗，請稍後再試。</div>';
-        });
-    } else {
-      renderData([]);
+      var rows = '<tr><th>座號</th><th>天氣</th><th>強度</th><th>時間</th></tr>';
+      for (var i = 0; i < data.length; i++) {
+        var d = data[i];
+        var m = MOODS[d.mood];
+        var lv = LEVELS[(d.mood_level || 1) - 1].label;
+        var t = new Date(d.created_at).toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
+        rows += '<tr><td>' + d.seat_number + '</td><td>' + m.emoji + ' ' + m.name + '</td><td>' + lv + '</td><td>' + t + '</td></tr>';
+      }
+      ht.innerHTML = rows;
+    },
+    function(err) {
+      console.error(err);
+      bc.innerHTML = '<div style="color:#c62828;">載入失敗：' + (err.message || '未知錯誤') + '</div>';
     }
-  } catch (e) {
-    console.error(e);
-    bc.innerHTML = '<div style="color:#c62828;">載入失敗，請稍後再試。</div>';
-  }
+  );
 }
 
 function backToDone() {
