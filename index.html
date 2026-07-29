@@ -277,13 +277,6 @@
     <label style="margin-top:18px;">你想多說一點嗎？（可選）</label>
     <select id="noteSelect" style="margin-bottom:10px;">
       <option value="">選一句話，或自己寫</option>
-      <option value="因為昨天睡得很好">因為昨天睡得很好 🌙</option>
-      <option value="因為有期待的事">因為有期待的事 🎁</option>
-      <option value="因為和朋友在一起">因為和朋友在一起 👫</option>
-      <option value="因為有點擔心功課">因為有點擔心功課 📚</option>
-      <option value="因為想家">因為想家 🏠</option>
-      <option value="因為身體不太舒服">因為身體不太舒服 🤒</option>
-      <option value="不為什麼，就是這樣">不為什麼，就是這樣 🍃</option>
     </select>
     <textarea id="noteCustom" rows="2" placeholder="也可以自己寫...（例如：因為今天有體育課！）"></textarea>
 
@@ -638,6 +631,71 @@ function goToMood() {
 
 function backToSeat() { show('step-seat'); }
 
+/* 每個心情對應的下拉選項 */
+var MOOD_OPTIONS = {
+  sunny: [
+    { text: '因為吃到好吃的東西 🍰', value: '因為吃到好吃的東西' },
+    { text: '因為和朋友玩得很開心 👫', value: '因為和朋友玩得很開心' },
+    { text: '因為昨天睡得很好 🌙', value: '因為昨天睡得很好' },
+    { text: '因為被稱讚了 🌟', value: '因為被稱讚了' },
+    { text: '不為什麼，就是開心 ☀️', value: '不為什麼，就是開心' }
+  ],
+  cloudy: [
+    { text: '因為今天感覺剛剛好 🍃', value: '因為今天感覺剛剛好' },
+    { text: '因為沒有特別發生什麼事 ⛅', value: '因為沒有特別發生什麼事' },
+    { text: '因為想安靜一下 🤫', value: '因為想安靜一下' },
+    { text: '因為只是發呆也很舒服 😶', value: '因為只是發呆也很舒服' },
+    { text: '不為什麼，就是這樣 🍵', value: '不為什麼，就是這樣' }
+  ],
+  rainy: [
+    { text: '因為有點擔心功課 📚', value: '因為有點擔心功課' },
+    { text: '因為和朋友吵架了 😢', value: '因為和朋友吵架了' },
+    { text: '因為想家 🏠', value: '因為想家' },
+    { text: '因為覺得自己做得不夠好 💔', value: '因為覺得自己做得不夠好' },
+    { text: '因為發生了難過的事 🌧️', value: '因為發生了難過的事' },
+    { text: '不為什麼，就是悶悶的 🍂', value: '不為什麼，就是悶悶的' }
+  ],
+  thunder: [
+    { text: '因為有人讓我不舒服 😤', value: '因為有人讓我不舒服' },
+    { text: '因為覺得不公平 ⚖️', value: '因為覺得不公平' },
+    { text: '因為被誤解了 😠', value: '因為被誤解了' },
+    { text: '因為不想做的事被逼著做 😣', value: '因為不想做的事被逼著做' },
+    { text: '因為東西被弄壞/弄亂了 🔥', value: '因為東西被弄壞/弄亂了' },
+    { text: '因為感覺自己沒被尊重 😤', value: '因為感覺自己沒被尊重' },
+    { text: '不為什麼，就是很火大 ⛈️', value: '不為什麼，就是很火大' }
+  ],
+  rainbow: [
+    { text: '因為今天有喜歡的課 🎨', value: '因為今天有喜歡的課' },
+    { text: '因為即將要去旅行/出去玩 ✈️', value: '因為即將要去旅行/出去玩' },
+    { text: '因為馬上就要放假了 🎉', value: '因為馬上就要放假了' },
+    { text: '因為有一件期待的事 🎁', value: '因為有一件期待的事' },
+    { text: '不為什麼，就是期待 🌈', value: '不為什麼，就是期待' }
+  ],
+  moon: [
+    { text: '因為昨晚沒睡好 😴', value: '因為昨晚沒睡好' },
+    { text: '因為身體不太舒服 🤒', value: '因為身體不太舒服' },
+    { text: '因為最近事情太多 😵', value: '因為最近事情太多' },
+    { text: '因為不想說話只想休息 🤫', value: '因為不想說話只想休息' },
+    { text: '因為心裡很累但說不上原因 🌑', value: '因為心裡很累但說不上原因' },
+    { text: '不為什麼，就是想安靜 🌙', value: '不為什麼，就是想安靜' }
+  ]
+};
+
+function updateNoteOptions(mood) {
+  var select = document.getElementById('noteSelect');
+  if (!select) return;
+  select.innerHTML = '<option value="">選一句話，或自己寫</option>';
+  var opts = MOOD_OPTIONS[mood];
+  if (!opts) return;
+  for (var i = 0; i < opts.length; i++) {
+    var o = opts[i];
+    var opt = document.createElement('option');
+    opt.value = o.value;
+    opt.textContent = o.text;
+    select.appendChild(opt);
+  }
+}
+
 function selectMood(key, el) {
   currentMood = key;
   var buttons = document.querySelectorAll('.mood-btn');
@@ -645,6 +703,7 @@ function selectMood(key, el) {
     buttons[i].classList.remove('selected');
   }
   el.classList.add('selected');
+  updateNoteOptions(key);
   setTimeout(function() { show('step-detail'); }, 250);
 }
 
