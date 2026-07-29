@@ -3,17 +3,144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>早安心情氣象站</title>
+<title>心情氣象站</title>
 <style>
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0;
     font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-    background: linear-gradient(135deg, #e0f7fa 0%, #fff3e0 100%);
+    background: linear-gradient(180deg, #e3f2fd 0%, #fff8e1 40%, #fce4ec 100%);
     min-height: 100vh;
     overflow-x: hidden;
     color: #333;
+    position: relative;
   }
+
+  /* 背景裝飾：飄浮雲朵 */
+  .cloud {
+    position: fixed;
+    background: #fff;
+    border-radius: 50px;
+    opacity: 0.6;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+  }
+  .cloud1 { width: 80px; height: 30px; top: 10%; left: -100px; animation: floatCloud 25s linear infinite; }
+  .cloud1::before { width: 40px; height: 40px; top: -20px; left: 10px; }
+  .cloud1::after { width: 50px; height: 35px; top: -15px; left: 30px; }
+  .cloud2 { width: 60px; height: 25px; top: 25%; left: -80px; animation: floatCloud 30s linear infinite 5s; opacity: 0.4; }
+  .cloud2::before { width: 30px; height: 30px; top: -15px; left: 8px; }
+  .cloud2::after { width: 40px; height: 28px; top: -12px; left: 22px; }
+  .cloud3 { width: 100px; height: 35px; top: 60%; left: -120px; animation: floatCloud 35s linear infinite 10s; opacity: 0.35; }
+  .cloud3::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+  .cloud3::after { width: 60px; height: 40px; top: -18px; left: 40px; }
+  @keyframes floatCloud {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(100vw + 200px)); }
+  }
+
+  /* 背景裝飾：小星星閃爍 */
+  .star {
+    position: fixed;
+    color: #ffd54f;
+    font-size: 1rem;
+    z-index: 0;
+    pointer-events: none;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  .star1 { top: 15%; left: 10%; animation-delay: 0s; }
+  .star2 { top: 35%; right: 15%; animation-delay: 1s; font-size: 0.7rem; }
+  .star3 { top: 55%; left: 5%; animation-delay: 2s; font-size: 1.2rem; }
+  .star4 { top: 75%; right: 10%; animation-delay: 0.5s; font-size: 0.8rem; }
+  .star5 { top: 45%; left: 85%; animation-delay: 1.5s; font-size: 0.9rem; }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+
+  /* 雨滴背景 */
+  .raindrop {
+    position: fixed;
+    width: 2px;
+    height: 15px;
+    background: linear-gradient(to bottom, transparent, #90caf9);
+    border-radius: 2px;
+    opacity: 0.3;
+    z-index: 0;
+    pointer-events: none;
+    animation: fall linear infinite;
+  }
+  .raindrop1 { left: 20%; animation-duration: 1.5s; animation-delay: 0s; }
+  .raindrop2 { left: 40%; animation-duration: 1.8s; animation-delay: 0.5s; }
+  .raindrop3 { left: 60%; animation-duration: 1.3s; animation-delay: 1s; }
+  .raindrop4 { left: 80%; animation-duration: 1.6s; animation-delay: 1.5s; }
+  .raindrop5 { left: 10%; animation-duration: 2s; animation-delay: 0.3s; }
+  .raindrop6 { left: 90%; animation-duration: 1.4s; animation-delay: 0.8s; }
+  @keyframes fall {
+    0% { transform: translateY(-20px); opacity: 0; }
+    10% { opacity: 0.3; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(100vh); opacity: 0; }
+  }
+
+  /* 太陽裝飾 */
+  .sun {
+    position: fixed;
+    top: 5%;
+    right: 5%;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, #ffd54f 30%, #ff8f00 70%);
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+    box-shadow: 0 0 40px rgba(255, 213, 79, 0.4);
+    animation: sunPulse 4s ease-in-out infinite;
+  }
+  .sun::before {
+    content: '';
+    position: absolute;
+    top: -15px; left: -15px; right: -15px; bottom: -15px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(255,213,79,0.3) 15deg, transparent 30deg, rgba(255,213,79,0.3) 45deg, transparent 60deg, rgba(255,213,79,0.3) 75deg, transparent 90deg, rgba(255,213,79,0.3) 105deg, transparent 120deg, rgba(255,213,79,0.3) 135deg, transparent 150deg, rgba(255,213,79,0.3) 165deg, transparent 180deg, rgba(255,213,79,0.3) 195deg, transparent 210deg, rgba(255,213,79,0.3) 225deg, transparent 240deg, rgba(255,213,79,0.3) 255deg, transparent 270deg, rgba(255,213,79,0.3) 285deg, transparent 300deg, rgba(255,213,79,0.3) 315deg, transparent 330deg, rgba(255,213,79,0.3) 345deg, transparent 360deg);
+    animation: sunRotate 10s linear infinite;
+  }
+  @keyframes sunPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(255, 213, 79, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(255, 213, 79, 0.6); }
+  }
+  @keyframes sunRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* 彩虹裝飾 */
+  .rainbow-deco {
+    position: fixed;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 100px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.15;
+  }
+  .rainbow-deco::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 100px;
+    border-radius: 100px 100px 0 0;
+    background: linear-gradient(to bottom, rgba(239,83,80,0.5) 0%, rgba(239,83,80,0.5) 16%, rgba(255,167,38,0.5) 16%, rgba(255,167,38,0.5) 32%, rgba(253,216,53,0.5) 32%, rgba(253,216,53,0.5) 48%, rgba(102,187,106,0.5) 48%, rgba(102,187,106,0.5) 64%, rgba(66,165,245,0.5) 64%, rgba(66,165,245,0.5) 80%, rgba(171,71,188,0.5) 80%, rgba(171,71,188,0.5) 100%);
+  }
+
   .container {
     max-width: 720px;
     margin: 0 auto;
@@ -21,49 +148,85 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 1;
   }
+
+  /* 氣象站標誌 */
+  .logo-area {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .logo-icon {
+    font-size: 3.5rem;
+    display: inline-block;
+    animation: logoBounce 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  }
+  @keyframes logoBounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(5deg); }
+    75% { transform: translateY(-4px) rotate(-3deg); }
+  }
+
   h1 {
     text-align: center;
-    font-size: 1.8rem;
-    margin: 12px 0 20px;
+    font-size: 1.9rem;
+    margin: 8px 0 12px;
     color: #1565c0;
-    text-shadow: 1px 1px 0 #fff;
+    text-shadow: 2px 2px 0 rgba(255,255,255,0.8);
+    letter-spacing: 2px;
+    font-weight: 800;
   }
   .subtitle {
     text-align: center;
-    font-size: 1rem;
-    color: #555;
+    font-size: 1.05rem;
+    color: #666;
     margin-bottom: 24px;
+    font-weight: 500;
   }
   .card {
-    background: rgba(255,255,255,0.92);
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    background: rgba(255,255,255,0.95);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(25,118,210,0.1), 0 2px 8px rgba(0,0,0,0.04);
     margin-bottom: 16px;
-    animation: fadeIn 0.5s ease both;
+    animation: fadeIn 0.6s ease both;
+    border: 1px solid rgba(255,255,255,0.6);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #42a5f5, #66bb6a, #ffa726, #ef5350, #ab47bc);
+    border-radius: 24px 24px 0 0;
+    opacity: 0.4;
   }
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(12px); }
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
   label {
     display: block;
     font-weight: 700;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
+    margin-bottom: 12px;
+    font-size: 1.15rem;
     color: #444;
   }
   input[type="number"], input[type="text"], select, textarea {
     width: 100%;
-    padding: 14px;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
+    padding: 16px;
+    border: 2px solid #e3f2fd;
+    border-radius: 14px;
     font-size: 1.1rem;
     outline: none;
-    transition: border-color .2s;
+    transition: all .2s;
+    background: #fafafa;
   }
-  input:focus, select:focus, textarea:focus { border-color: #42a5f5; }
+  input:focus, select:focus, textarea:focus { border-color: #42a5f5; background: #fff; box-shadow: 0 0 0 4px rgba(66,165,245,0.1); }
   .btn {
     display: inline-block;
     width: 100%;
@@ -73,146 +236,191 @@
     color: #fff;
     background: linear-gradient(135deg, #42a5f5, #1976d2);
     border: none;
-    border-radius: 14px;
+    border-radius: 16px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(25,118,210,0.3);
-    transition: transform .1s, box-shadow .2s;
-    margin-top: 10px;
+    box-shadow: 0 4px 16px rgba(25,118,210,0.3);
+    transition: all .15s;
+    margin-top: 12px;
+    position: relative;
+    overflow: hidden;
   }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(25,118,210,0.4); }
-  .btn:active { transform: translateY(0); }
+  .btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(25,118,210,0.4); }
+  .btn:hover::after { left: 100%; }
+  .btn:active { transform: translateY(-1px); }
   .btn-secondary {
     background: linear-gradient(135deg, #ffa726, #fb8c00);
-    box-shadow: 0 4px 12px rgba(251,140,0,0.3);
+    box-shadow: 0 4px 16px rgba(251,140,0,0.3);
   }
-  .btn-secondary:hover { box-shadow: 0 6px 16px rgba(251,140,0,0.4); }
+  .btn-secondary:hover { box-shadow: 0 8px 24px rgba(251,140,0,0.4); }
   .btn-ghost {
     background: #f5f5f5;
-    color: #555;
+    color: #666;
     box-shadow: none;
     border: 2px solid #e0e0e0;
   }
+  .btn-ghost:hover { background: #eeeeee; border-color: #bdbdbd; }
+
   .grid-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 14px;
   }
   .grid-3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 14px;
   }
+
   .mood-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px 8px;
-    border-radius: 16px;
+    padding: 22px 10px;
+    border-radius: 20px;
     border: 3px solid transparent;
     background: #fff;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     cursor: pointer;
-    transition: transform .15s, box-shadow .2s, border-color .2s;
+    transition: all .2s;
     user-select: none;
+    position: relative;
+    overflow: hidden;
   }
-  .mood-btn:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-  .mood-btn.selected { border-color: #42a5f5; transform: scale(1.03); }
-  .mood-btn .emoji { font-size: 3rem; margin-bottom: 6px; }
-  .mood-btn .name { font-weight: 700; font-size: 1rem; color: #444; }
-  .mood-btn .hint { font-size: 0.82rem; color: #777; margin-top: 2px; }
+  .mood-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0; height: 0;
+    border-radius: 50%;
+    background: rgba(66,165,245,0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+  }
+  .mood-btn:hover::before { width: 150px; height: 150px; }
+  .mood-btn:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+  .mood-btn.selected { border-color: #42a5f5; transform: scale(1.04); box-shadow: 0 0 0 4px rgba(66,165,245,0.15), 0 8px 24px rgba(0,0,0,0.1); }
+  .mood-btn .emoji { font-size: 3.2rem; margin-bottom: 8px; display: block; transition: transform .3s; }
+  .mood-btn:hover .emoji { transform: scale(1.15) rotate(5deg); }
+  .mood-btn .name { font-weight: 800; font-size: 1.05rem; color: #333; }
+  .mood-btn .hint { font-size: 0.82rem; color: #888; margin-top: 4px; }
+
+  /* 心情按鈕專屬hover光暈 */
+  .mood-btn[data-mood="sunny"]:hover { box-shadow: 0 12px 28px rgba(255,167,38,0.25); }
+  .mood-btn[data-mood="rainy"]:hover { box-shadow: 0 12px 28px rgba(66,165,245,0.25); }
+  .mood-btn[data-mood="thunder"]:hover { box-shadow: 0 12px 28px rgba(239,83,80,0.25); }
+  .mood-btn[data-mood="moon"]:hover { box-shadow: 0 12px 28px rgba(171,71,188,0.25); }
+  .mood-btn[data-mood="rainbow"]:hover { box-shadow: 0 12px 28px rgba(102,187,106,0.2); }
 
   .level-btn {
-    padding: 14px;
-    border-radius: 12px;
-    border: 2px solid #e0e0e0;
+    padding: 16px;
+    border-radius: 14px;
+    border: 2px solid #e3f2fd;
     background: #fff;
     text-align: center;
     font-weight: 700;
     cursor: pointer;
     transition: all .15s;
+    position: relative;
   }
-  .level-btn.selected { border-color: #66bb6a; background: #e8f5e9; color: #2e7d32; }
+  .level-btn:hover { transform: translateY(-3px); border-color: #bbdefb; box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+  .level-btn.selected { border-color: #66bb6a; background: #e8f5e9; color: #2e7d32; box-shadow: 0 0 0 3px rgba(102,187,106,0.15); }
 
   .response-box {
-    background: #fff8e1;
-    border-left: 5px solid #ffa726;
-    padding: 18px;
-    border-radius: 12px;
-    margin-top: 10px;
-    font-size: 1.05rem;
-    line-height: 1.7;
-    color: #4e342e;
-  }
-  .advice-box {
-    background: #e3f2fd;
-    border-left: 5px solid #42a5f5;
-    padding: 18px;
-    border-radius: 12px;
+    background: linear-gradient(135deg, #fff8e1, #fff3e0);
+    border-left: 6px solid #ffa726;
+    padding: 20px;
+    border-radius: 16px;
     margin-top: 12px;
     font-size: 1.05rem;
-    line-height: 1.7;
+    line-height: 1.8;
+    color: #4e342e;
+    box-shadow: 0 2px 8px rgba(255,167,38,0.1);
+  }
+  .advice-box {
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    border-left: 6px solid #42a5f5;
+    padding: 20px;
+    border-radius: 16px;
+    margin-top: 14px;
+    font-size: 1.05rem;
+    line-height: 1.8;
     color: #1a237e;
+    box-shadow: 0 2px 8px rgba(66,165,245,0.1);
   }
   .badge {
     display: inline-block;
-    padding: 8px 16px;
+    padding: 10px 20px;
     border-radius: 999px;
     background: linear-gradient(135deg, #ffcc80, #ffa726);
     color: #4e342e;
-    font-weight: 700;
-    font-size: 1rem;
-    margin-top: 8px;
+    font-weight: 800;
+    font-size: 1.05rem;
+    margin-top: 12px;
+    box-shadow: 0 4px 12px rgba(255,167,38,0.3);
+    animation: badgePop 0.5s ease;
   }
+  @keyframes badgePop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
   .hidden { display: none !important; }
 
   .progress-bar {
-    height: 6px;
-    background: #e0e0e0;
-    border-radius: 3px;
+    height: 8px;
+    background: #eceff1;
+    border-radius: 4px;
     overflow: hidden;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
   }
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #42a5f5, #66bb6a);
+    background: linear-gradient(90deg, #42a5f5, #66bb6a, #ffa726);
     width: 0%;
-    transition: width .4s ease;
+    transition: width .5s ease;
+    border-radius: 4px;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(20px); }
   }
 
   .weather-summary {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
+    gap: 10px;
+    margin-top: 12px;
   }
   .weather-chip {
-    background: #fff;
-    border-radius: 10px;
-    padding: 8px 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    background: linear-gradient(135deg, #fff, #f5f5f5);
+    border-radius: 12px;
+    padding: 10px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     font-size: 0.95rem;
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: transform 0.2s;
   }
-
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-  }
-  .bounce { animation: bounce 2s infinite; }
-
-  .loading {
-    text-align: center;
-    padding: 30px;
-  }
-  .loading .spinner {
-    width: 48px; height: 48px;
-    border: 5px solid #e3f2fd;
-    border-top-color: #1976d2;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 12px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .weather-chip:hover { transform: translateY(-2px); }
 
   .history-table {
     width: 100%;
@@ -220,68 +428,163 @@
     font-size: 0.95rem;
   }
   .history-table th, .history-table td {
-    padding: 10px 8px;
+    padding: 12px 10px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eceff1;
   }
-  .history-table th { color: #666; font-weight: 700; }
+  .history-table th { color: #78909c; font-weight: 700; background: #f5f5f5; }
+  .history-table tr:hover td { background: #fafafa; }
 
   .error-toast {
     position: fixed;
-    top: 10px; left: 50%;
+    top: 16px; left: 50%;
     transform: translateX(-50%);
     background: #c62828;
     color: #fff;
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-size: 0.9rem;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.95rem;
     z-index: 9999;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    animation: toastIn 0.3s ease;
+  }
+  @keyframes toastIn {
+    from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
   }
 
+  /* 慶祝紙屑 */
+  .confetti {
+    position: fixed;
+    width: 10px; height: 10px;
+    z-index: 9998;
+    pointer-events: none;
+    animation: confettiFall 3s ease-out forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* 完成畫面煙火 */
+  .firework {
+    position: fixed;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    z-index: 9997;
+    pointer-events: none;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+  }
+  .loading .spinner {
+    width: 56px; height: 56px;
+    border: 6px solid #e3f2fd;
+    border-top-color: #42a5f5;
+    border-right-color: #ffa726;
+    border-radius: 50%;
+    animation: spin 1.2s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  .done-emoji {
+    font-size: 4.5rem;
+    display: inline-block;
+    animation: doneBounce 1s ease infinite;
+    filter: drop-shadow(0 4px 12px rgba(255,167,38,0.3));
+  }
+  @keyframes doneBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-12px) scale(1.1); }
+  }
+
+  .welcome-hint {
+    text-align: center;
+    color: #90a4ae;
+    font-size: 0.9rem;
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 12px;
+    border: 1px dashed #cfd8dc;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .bounce { animation: bounce 2s infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   @media (max-width: 480px) {
-    h1 { font-size: 1.5rem; }
-    .mood-btn .emoji { font-size: 2.4rem; }
+    h1 { font-size: 1.6rem; letter-spacing: 1px; }
+    .mood-btn .emoji { font-size: 2.6rem; }
+    .logo-icon { font-size: 2.8rem; }
+    .sun { width: 40px; height: 40px; }
   }
 </style>
 </head>
 <body>
+
+<!-- 背景裝飾 -->
+<div class="sun"></div>
+<div class="cloud cloud1"></div>
+<div class="cloud cloud2"></div>
+<div class="cloud cloud3"></div>
+<div class="raindrop raindrop1"></div>
+<div class="raindrop raindrop2"></div>
+<div class="raindrop raindrop3"></div>
+<div class="raindrop raindrop4"></div>
+<div class="raindrop raindrop5"></div>
+<div class="raindrop raindrop6"></div>
+<div class="star star1">✨</div>
+<div class="star star2">⭐</div>
+<div class="star star3">✨</div>
+<div class="star star4">⭐</div>
+<div class="star star5">✨</div>
+<div class="rainbow-deco"></div>
+
 <div class="container">
-  <h1>🌤️ 早安心情氣象站</h1>
+  <div class="logo-area">
+    <div class="logo-icon">🌤️</div>
+  </div>
+  <h1>心情氣象站</h1>
   <div class="subtitle">今天你的心是什麼天氣呢？</div>
 
   <!-- Step 1: 座號 -->
   <div id="step-seat" class="card">
-    <label>請輸入你的座號</label>
+    <label>🔢 請輸入你的座號</label>
     <input id="seatInput" type="number" min="1" max="99" placeholder="例如：12" inputmode="numeric">
     <button class="btn" onclick="goToMood()">開始登錄 🚀</button>
-    <div style="margin-top:12px; text-align:center;">
-      <small style="color:#888;">小秘密：氣象站會記住你，下次不用重新輸入喔</small>
+    <div class="welcome-hint">
+      💡 小秘密：氣象站會記住你，下次不用重新輸入喔
     </div>
   </div>
 
   <!-- Step 2: 選心情 -->
   <div id="step-mood" class="card hidden">
     <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
-    <label>點選今天最像你的天氣</label>
+    <label>☁️ 點選今天最像你的天氣</label>
     <div class="grid-2" id="moodGrid"></div>
-    <button class="btn btn-ghost" onclick="backToSeat()" style="margin-top:12px;">← 返回</button>
+    <button class="btn btn-ghost" onclick="backToSeat()" style="margin-top:14px;">← 返回</button>
   </div>
 
   <!-- Step 3: 強度與語句 -->
   <div id="step-detail" class="card hidden">
     <div class="progress-bar"><div class="progress-fill" style="width:66%"></div></div>
-    <label>這個感覺有多強呢？</label>
+    <label>📊 這個感覺有多強呢？</label>
     <div class="grid-3" id="levelGrid"></div>
 
-    <label style="margin-top:18px;">你想多說一點嗎？（可選）</label>
+    <label style="margin-top:20px;">💬 你想多說一點嗎？（可選）</label>
     <select id="noteSelect" style="margin-bottom:10px;">
       <option value="">選一句話，或自己寫</option>
     </select>
     <textarea id="noteCustom" rows="2" placeholder="也可以自己寫...（例如：因為今天有體育課！）"></textarea>
 
     <button class="btn" onclick="submitMood()" id="submitBtn">完成登錄 ✨</button>
-    <button class="btn btn-ghost" onclick="backToMood()" style="margin-top:8px;">← 返回</button>
+    <button class="btn btn-ghost" onclick="backToMood()" style="margin-top:10px;">← 返回</button>
   </div>
 
   <!-- Step 4: AI 回應與建議 -->
@@ -297,14 +600,14 @@
 
   <!-- Step 5: 完成 -->
   <div id="step-done" class="card hidden">
-    <div style="text-align:center; padding: 20px 0;">
-      <div class="emoji bounce" style="font-size:4rem;">🎉</div>
-      <h2 style="color:#1565c0; margin:12px 0;">登錄完成！</h2>
-      <p style="color:#555;">你今天已經完成心情登錄，超棒的！</p>
+    <div style="text-align:center; padding: 24px 0;">
+      <div class="done-emoji">🎉</div>
+      <h2 style="color:#1565c0; margin:16px 0; font-size:1.6rem;">登錄完成！</h2>
+      <p style="color:#666; font-size:1.05rem;">你今天已經完成心情登錄，超棒的！</p>
       <div id="todayBadge" class="badge"></div>
-      <div style="margin-top:20px;">
+      <div style="margin-top:24px;">
         <button class="btn" onclick="resetAll()">再幫同學登錄</button>
-        <button class="btn btn-secondary" onclick="showTodayBoard()" style="margin-top:10px;">看今日班級天氣圖</button>
+        <button class="btn btn-secondary" onclick="showTodayBoard()" style="margin-top:12px;">看今日班級天氣圖</button>
       </div>
     </div>
   </div>
@@ -316,7 +619,7 @@
     <div style="margin-top:16px;">
       <table class="history-table" id="historyTable"></table>
     </div>
-    <button class="btn btn-ghost" onclick="backToDone()" style="margin-top:12px;">← 返回</button>
+    <button class="btn btn-ghost" onclick="backToDone()" style="margin-top:14px;">← 返回</button>
   </div>
 
 </div>
@@ -508,7 +811,7 @@ var currentLevel = null;
 var currentNote = '';
 
 /* ================================
-   Supabase 原生呼叫（不用外部函式庫）
+   Supabase 原生呼叫
    ================================ */
 function apiGet(endpoint, onSuccess, onError) {
   try {
@@ -750,6 +1053,27 @@ function selectLevel(val, el) {
 }
 
 /* ================================
+   慶祝效果
+   ================================ */
+function spawnConfetti() {
+  var colors = ['#ffcc80','#ff8a65','#81d4fa','#a5d6a7','#ce93d8','#fff176'];
+  for (var i = 0; i < 20; i++) {
+    var c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.top = '-10px';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    c.style.animationDuration = (2 + Math.random() * 2) + 's';
+    c.style.animationDelay = (Math.random() * 0.5) + 's';
+    c.style.width = (6 + Math.random() * 8) + 'px';
+    c.style.height = (6 + Math.random() * 8) + 'px';
+    document.body.appendChild(c);
+    setTimeout(function(el) { return function() { el.remove(); }; }(c), 4000);
+  }
+}
+
+/* ================================
    提交與回應
    ================================ */
 function pickRandom(arr) {
@@ -839,6 +1163,7 @@ function submitMood() {
 
 function finish() {
   document.getElementById('todayBadge').innerText = BADGES[currentMood];
+  spawnConfetti();
   show('step-done');
 }
 
