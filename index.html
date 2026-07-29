@@ -329,7 +329,7 @@ function showError(msg) {
   console.error(msg);
   var el = document.createElement('div');
   el.className = 'error-toast';
-  el.textContent = '⚠️ ' + msg;
+  el.innerText = '⚠️ ' + msg;
   document.body.appendChild(el);
   setTimeout(function() { el.remove(); }, 6000);
 }
@@ -549,10 +549,9 @@ function buildMoodGrid() {
     var div = document.createElement('div');
     div.className = 'mood-btn';
     div.style.background = m.color;
+    div.setAttribute('data-mood', key);
     div.innerHTML = '<div class="emoji">' + m.emoji + '</div><div class="name">' + m.name + '</div><div class="hint">' + m.desc + '</div>';
-    div.onclick = (function(k) {
-      return function() { selectMood(k, div); };
-    })(key);
+    div.onclick = function() { selectMood(this.getAttribute('data-mood'), this); };
     grid.appendChild(div);
   }
 }
@@ -565,10 +564,9 @@ function buildLevelGrid() {
     var l = LEVELS[i];
     var div = document.createElement('div');
     div.className = 'level-btn';
+    div.setAttribute('data-value', l.value);
     div.innerHTML = '<div style="font-size:1.4rem;">' + l.label + '</div><div style="font-size:0.85rem;color:#777;margin-top:2px;">' + l.desc + '</div>';
-    div.onclick = (function(lv) {
-      return function() { selectLevel(lv.value, div); };
-    })(l);
+    div.onclick = function() { selectLevel(parseInt(this.getAttribute('data-value'), 10), this); };
     grid.appendChild(div);
   }
 }
@@ -691,7 +689,7 @@ function updateNoteOptions(mood) {
     var o = opts[i];
     var opt = document.createElement('option');
     opt.value = o.value;
-    opt.textContent = o.text;
+    opt.text = o.text;
     select.appendChild(opt);
   }
 }
@@ -806,7 +804,7 @@ function submitMood() {
 }
 
 function finish() {
-  document.getElementById('todayBadge').textContent = BADGES[currentMood];
+  document.getElementById('todayBadge').innerText = BADGES[currentMood];
   show('step-done');
 }
 
