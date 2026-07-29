@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>早安心情氣象站</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: linear-gradient(135deg, #e0f7fa 0%, #fff3e0 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: #333;
+  }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin: 12px 0 20px;
+    color: #1565c0;
+    text-shadow: 1px 1px 0 #fff;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    margin-bottom: 16px;
+    animation: fadeIn 0.5s ease both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #444;
+  }
+  input[type="number"], input[type="text"], select, textarea {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #42a5f5; }
+  .btn {
+    display: inline-block;
+    width: 100%;
+    padding: 16px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #42a5f5, #1976d2);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(25,118,210,0.3);
+    transition: transform .1s, box-shadow .2s;
+    margin-top: 10px;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(25,118,210,0.4); }
+  .btn:active { transform: translateY(0); }
+  .btn-secondary {
+    background: linear-gradient(135deg, #ffa726, #fb8c00);
+    box-shadow: 0 4px 12px rgba(251,140,0,0.3);
+  }
+  .btn-secondary:hover { box-shadow: 0 6px 16px rgba(251,140,0,0.4); }
+  .btn-ghost {
+    background: #f5f5f5;
+    color: #555;
+    box-shadow: none;
+    border: 2px solid #e0e0e0;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .mood-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 8px;
+    border-radius: 16px;
+    border: 3px solid transparent;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s, border-color .2s;
+    user-select: none;
+  }
+  .mood-btn:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .mood-btn.selected { border-color: #42a5f5; transform: scale(1.03); }
+  .mood-btn .emoji { font-size: 3rem; margin-bottom: 6px; }
+  .mood-btn .name { font-weight: 700; font-size: 1rem; color: #444; }
+  .mood-btn .hint { font-size: 0.82rem; color: #777; margin-top: 2px; }
+
+  .level-btn {
+    padding: 14px;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    background: #fff;
+    text-align: center;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .level-btn.selected { border-color: #66bb6a; background: #e8f5e9; color: #2e7d32; }
+
+  .response-box {
+    background: #fff8e1;
+    border-left: 5px solid #ffa726;
+    padding: 18px;
+    border-radius: 12px;
+    margin-top: 10px;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #4e342e;
+  }
+  .advice-box {
+    background: #e3f2fd;
+    border-left: 5px solid #42a5f5;
+    padding: 18px;
+    border-radius: 12px;
+    margin-top: 12px;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #1a237e;
+  }
+  .badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ffcc80, #ffa726);
+    color: #4e342e;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 8px;
+  }
+  .hidden { display: none !important; }
+
+  .progress-bar {
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #42a5f5, #66bb6a);
+    width: 0%;
+    transition: width .4s ease;
+  }
+
+  .weather-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .weather-chip {
+    background: #fff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    font-size: 0.95rem;
+  }
+
+  /* 小動畫 */
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .bounce { animation: bounce 2s infinite; }
+
+  .loading {
+    text-align: center;
+    padding: 30px;
+  }
+  .loading .spinner {
+    width: 48px; height: 48px;
+    border: 5px solid #e3f2fd;
+    border-top-color: #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .history-table th, .history-table td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+  }
+  .history-table th { color: #666; font-weight: 700; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.5rem; }
+    .mood-btn .emoji { font-size: 2.4rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🌤️ 早安心情氣象站</h1>
+  <div class="subtitle">今天你的心是什麼天氣呢？</div>
+
+  <!-- Step 1: 座號 -->
+  <div id="step-seat" class="card">
+    <label>請輸入你的座號</label>
+    <input id="seatInput" type="number" min="1" max="99" placeholder="例如：12" inputmode="numeric">
+    <button class="btn" onclick="goToMood()">開始登錄 🚀</button>
+    <div style="margin-top:12px; text-align:center;">
+      <small style="color:#888;">小秘密：氣象站會記住你，下次不用重新輸入喔</small>
+    </div>
+  </div>
+
+  <!-- Step 2: 選心情 -->
+  <div id="step-mood" class="card hidden">
+    <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
+    <label>點選今天最像你的天氣</label>
+    <div class="grid-2" id="moodGrid"></div>
+    <button class="btn btn-ghost" onclick="backToSeat()" style="margin-top:12px;">← 返回</button>
+  </div>
+
+  <!-- Step 3: 強度與語句 -->
+  <div id="step-detail" class="card hidden">
+    <div class="progress-bar"><div class="progress-fill" style="width:66%"></div></div>
+    <label>這個感覺有多強呢？</label>
+    <div class="grid-3" id="levelGrid"></div>
+
+    <label style="margin-top:18px;">你想多說一點嗎？（可選）</label>
+    <select id="noteSelect" style="margin-bottom:10px;">
+      <option value="">選一句話，或自己寫</option>
+      <option value="因為昨天睡得很好">因為昨天睡得很好 🌙</option>
+      <option value="因為有期待的事">因為有期待的事 🎁</option>
+      <option value="因為和朋友在一起">因為和朋友在一起 👫</option>
+      <option value="因為有點擔心功課">因為有點擔心功課 📚</option>
+      <option value="因為想家">因為想家 🏠</option>
+      <option value="因為身體不太舒服">因為身體不太舒服 🤒</option>
+      <option value="不為什麼，就是這樣">不為什麼，就是這樣 🍃</option>
+    </select>
+    <textarea id="noteCustom" rows="2" placeholder="也可以自己寫...（例如：因為今天有體育課！）"></textarea>
+
+    <button class="btn" onclick="submitMood()" id="submitBtn">完成登錄 ✨</button>
+    <button class="btn btn-ghost" onclick="backToMood()" style="margin-top:8px;">← 返回</button>
+  </div>
+
+  <!-- Step 4: AI 回應與建議 -->
+  <div id="step-result" class="card hidden">
+    <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+    <div id="resultContent">
+      <div class="loading">
+        <div class="spinner"></div>
+        <div>🪄 正在為你調製今日回應...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5: 完成 -->
+  <div id="step-done" class="card hidden">
+    <div style="text-align:center; padding: 20px 0;">
+      <div class="emoji bounce" style="font-size:4rem;">🎉</div>
+      <h2 style="color:#1565c0; margin:12px 0;">登錄完成！</h2>
+      <p style="color:#555;">你今天已經完成心情登錄，超棒的！</p>
+      <div id="todayBadge" class="badge"></div>
+      <div style="margin-top:20px;">
+        <button class="btn" onclick="resetAll()">再幫同學登錄</button>
+        <button class="btn btn-secondary" onclick="showTodayBoard()" style="margin-top:10px;">看今日班級天氣圖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 班級天氣圖 -->
+  <div id="step-board" class="card hidden">
+    <label>☁️ 今日班級心情天氣圖</label>
+    <div id="boardContent" class="weather-summary"></div>
+    <div style="margin-top:16px;">
+      <table class="history-table" id="historyTable"></table>
+    </div>
+    <button class="btn btn-ghost" onclick="backToDone()" style="margin-top:12px;">← 返回</button>
+  </div>
+
+</div>
+
+<script>
+/* ================================
+   設定區：Supabase + 心情資料
+   ================================ */
+const SUPABASE_URL = 'https://deebjpgtujatpefucajc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_voo5n0P60X6L4QGjAUNqLQ_bLW9lIe8';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const MOODS = {
+  sunny:  { emoji:'☀️', name:'大晴天', color:'#fff8e1', desc:'超級開心 / 充滿活力' },
+  cloudy: { emoji:'⛅', name:'多雲',    color:'#eceff1', desc:'還不錯 / 平靜' },
+  rainy:  { emoji:'🌧️', name:'小雨',    color:'#e3f2fd', desc:'有點悶 / 小難過' },
+  thunder:{ emoji:'⛈️', name:'打雷',    color:'#fce4ec', desc:'生氣 / 不爽' },
+  rainbow:{ emoji:'🌈', name:'彩虹',    color:'#f3e5f5', desc:'期待 / 有好事' },
+  moon:   { emoji:'🌙', name:'月亮',    color:'#ede7f6', desc:'很累 / 想安靜' }
+};
+
+const LEVELS = [
+  { value:1, label:'小', desc:'一點點' },
+  { value:2, label:'中', desc:'蠻明顯的' },
+  { value:3, label:'大', desc:'非常強烈' }
+];
+
+// 回應模板：根據 mood + level 組合產生
+const RESPONSE_TEMPLATES = {
+  sunny: {
+    intro: [
+      '哇，今天你的心裡是大晴天呢！☀️',
+      '陽光照進來的感覺真棒！',
+      '開心的能量正在你身上閃閃發光！'
+    ],
+    body: [
+      '這種開心就像太陽一樣，不只能溫暖自己，還可以照亮旁邊的人。',
+      '開心的時候，身體會分泌讓人變勇敢的魔法，你今天可以做一件小小的好事。',
+      '把這份開心記在心裡，它是你今天的超級能量！'
+    ],
+    advice: [
+      '今天可以畫一張「開心圖」貼在聯絡簿，回家跟家人分享。',
+      '把這份開心傳給一位同學：對他笑一下，或說聲「早安」。',
+      '在心裡對自己說：「謝謝自己，讓今天這麼棒！」'
+    ]
+  },
+  cloudy: {
+    intro: [
+      '多雲的天空，風輕輕的，對嗎？⛅',
+      '平靜也是一種很棒的狀態。',
+      '你的心今天像一片安靜的雲。'
+    ],
+    body: [
+      '平靜不是「沒感覺」，而是你的心剛剛好，像舒服的溫度。',
+      '這種穩定的感覺，是思考和創作最好的時候。',
+      '不冷不熱的天氣，最適合慢慢觀察身邊的小事情。'
+    ],
+    advice: [
+      '今天適合做一件「安靜的事」：觀察教室外的一棵樹，或讀一本喜歡的書。',
+      '把平靜當成今天的基地，遇到事情時，深呼吸就會穩定下來。',
+      '不需要特別做什麼，享受這種「剛剛好」的感覺。'
+    ]
+  },
+  rainy: {
+    intro: [
+      '小雨來了，心裡濕濕的對嗎？🌧️',
+      '有點悶、有點想安靜，這很正常。',
+      '小雨也是天氣的一部分，它會過去的。'
+    ],
+    body: [
+      '難過不是軟弱，而是你的心在告訴你：「這件事對我很重要。」',
+      '小雨會滋潤大地，難過也會讓我們更了解自己在乎什麼。',
+      '不需要馬上變開心，先允許自己慢慢走。'
+    ],
+    advice: [
+      '找一個舒服的地方坐一下，告訴自己：「沒關係，我陪著你。」',
+      '如果願意，可以找老師或同學說一句：「我今天有點悶。」',
+      '畫一張「心情地圖」：把悶悶的感覺畫出來，顏色會幫你說話。'
+    ]
+  },
+  thunder: {
+    intro: [
+      '心裡在打雷嗎？轟隆隆的！⛈️',
+      '生氣是身體的警報器，它在保護你。',
+      '火大也沒關係，我們一起把它變成安全的能量。'
+    ],
+    body: [
+      '生氣不是壞事，它告訴你：「這裡有我不喜歡的東西。」',
+      '但打雷太久的時候，我們可以學著讓自己冷卻一點點。',
+      '你不需要壓抑生氣，只需要讓它「安全地」出來。'
+    ],
+    advice: [
+      '生氣時，先深呼吸三次，像吹熄蠟燭一樣慢慢吐氣。',
+      '用力握緊拳頭數到五，再放開，讓緊繃跑掉。',
+      '在心裡問自己：「我真正想要的是什麼？」把生氣變成清楚的話說出來。'
+    ]
+  },
+  rainbow: {
+    intro: [
+      '彩虹出現了！🌈 一定有美好的事情正在發生。',
+      '期待的心情，就像拆禮物前的興奮感。',
+      '你的心今天充滿了彩色泡泡！'
+    ],
+    body: [
+      '期待讓我們對明天有動力，它是夢想的燃料。',
+      '這種感覺像在心裡種了一顆種子，正等著發芽。',
+      '帶著這份期待，今天會變得特別有滋味。'
+    ],
+    advice: [
+      '把期待的事情寫下來：「我好希望______」，放進鉛筆盒。',
+      '為這份期待做一個小小的準備，例如整理書包。',
+      '把期待分享給一位朋友，讓開心變兩倍！'
+    ]
+  },
+  moon: {
+    intro: [
+      '月亮模式啟動，你的心今天想安靜。🌙',
+      '累的時候，不需要當小太陽，當月亮也很好。',
+      '身體在跟你說：「我需要休息。」'
+    ],
+    body: [
+      '疲倦不是偷懶，而是你的身體和心真的需要充電。',
+      '月亮不發光，只是靜靜地在那裡，但它也很重要。',
+      '今天可以當一顆安靜的石頭，不用一直跑來跑去。'
+    ],
+    advice: [
+      '找個角落閉眼一分鐘，想像自己在月光下休息。',
+      '今天對自己溫柔一點：喝水、慢慢走路、不用急。',
+      '如果真的很累，可以輕輕跟老師說：「我今天需要多一點安靜。」'
+    ]
+  }
+};
+
+// 徽章名稱
+const BADGES = {
+  sunny:'☀️ 陽光觀察家',
+  cloudy:'⛅ 微風記錄員',
+  rainy:'🌧️ 雨滴詩人',
+  thunder:'⛈️ 雷霆行者',
+  rainbow:'🌈 彩虹收藏家',
+  moon:'🌙 月光守護者'
+};
+
+let currentSeat = null;
+let currentMood = null;
+let currentLevel = null;
+let currentNote = '';
+
+/* ================================
+   初始化
+   ================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('moodSeat');
+  if (saved) {
+    document.getElementById('seatInput').value = saved;
+  }
+  buildMoodGrid();
+  buildLevelGrid();
+});
+
+function buildMoodGrid() {
+  const grid = document.getElementById('moodGrid');
+  grid.innerHTML = '';
+  Object.entries(MOODS).forEach(([key, m]) => {
+    const div = document.createElement('div');
+    div.className = 'mood-btn';
+    div.style.background = m.color;
+    div.innerHTML = `<div class="emoji">${m.emoji}</div><div class="name">${m.name}</div><div class="hint">${m.desc}</div>`;
+    div.onclick = () => selectMood(key, div);
+    grid.appendChild(div);
+  });
+}
+
+function buildLevelGrid() {
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+  LEVELS.forEach(l => {
+    const div = document.createElement('div');
+    div.className = 'level-btn';
+    div.innerHTML = `<div style="font-size:1.4rem;">${l.label}</div><div style="font-size:0.85rem;color:#777;margin-top:2px;">${l.desc}</div>`;
+    div.onclick = () => selectLevel(l.value, div);
+    grid.appendChild(div);
+  });
+}
+
+/* ================================
+   流程控制
+   ================================ */
+function show(id) {
+  ['step-seat','step-mood','step-detail','step-result','step-done','step-board'].forEach(x => {
+    document.getElementById(x).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function goToMood() {
+  const val = parseInt(document.getElementById('seatInput').value, 10);
+  if (!val || val < 1 || val > 99) {
+    alert('請輸入 1~99 的座號喔！'); return;
+  }
+  currentSeat = val;
+  localStorage.setItem('moodSeat', val);
+  show('step-mood');
+}
+
+function backToSeat() { show('step-seat'); }
+
+function selectMood(key, el) {
+  currentMood = key;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  // 自動進入下一步（小學生方便操作）
+  setTimeout(() => show('step-detail'), 250);
+}
+
+function backToMood() { show('step-mood'); }
+
+function selectLevel(val, el) {
+  currentLevel = val;
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function backToDetail() { show('step-detail'); }
+
+/* ================================
+   提交與回應
+   ================================ */
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateResponse(mood, level, note) {
+  const t = RESPONSE_TEMPLATES[mood];
+  const intro = pickRandom(t.intro);
+  const body = pickRandom(t.body);
+  const advice = pickRandom(t.advice);
+
+  let levelText = '';
+  if (level === 1) levelText = '雖然只有一點點，但我們都看到了。';
+  if (level === 2) levelText = '這個感覺蠻明顯的，值得被好好對待。';
+  if (level === 3) levelText = '這個感覺非常強烈，今天請特別照顧自己。';
+
+  let noteText = '';
+  if (note) noteText = `\n\n你說「${note}」，謝謝你願意說出來。`;
+
+  const response = `${intro}\n\n${body} ${levelText}${noteText}\n\n🌟 記得：不管什麼天氣，你都是值得被愛的孩子。`;
+  return { response, advice };
+}
+
+async function submitMood() {
+  if (!currentLevel) {
+    alert('請選擇感覺有多強喔！'); return;
+  }
+  const noteSel = document.getElementById('noteSelect').value;
+  const noteCustom = document.getElementById('noteCustom').value.trim();
+  currentNote = noteCustom || noteSel || '';
+
+  show('step-result');
+  const resEl = document.getElementById('resultContent');
+  resEl.innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>🪄 正在為你調製今日回應...</div>
+    </div>
+  `;
+
+  // 產生回應
+  const { response, advice } = generateResponse(currentMood, currentLevel, currentNote);
+
+  // 儲存到 Supabase
+  try {
+    const { error } = await supabase.from('mood_records').insert({
+      seat_number: currentSeat,
+      mood: currentMood,
+      mood_level: currentLevel,
+      note: currentNote || null,
+      ai_response: response,
+      advice: advice,
+      record_date: new Date().toISOString().slice(0,10)
+    });
+    if (error) throw error;
+  } catch (e) {
+    console.error('儲存失敗', e);
+    // 即使儲存失敗也顯示回應，不讓孩子失望
+  }
+
+  // 顯示結果
+  const m = MOODS[currentMood];
+  const badge = BADGES[currentMood];
+
+  resEl.innerHTML = `
+    <div style="text-align:center; margin-bottom:12px;">
+      <div style="font-size:3.5rem;">${m.emoji}</div>
+      <div style="font-size:1.2rem; color:#555; margin-top:4px;">${m.name} · ${LEVELS[currentLevel-1].label}</div>
+    </div>
+    <div class="response-box">
+      <div style="font-weight:700; color:#e65100; margin-bottom:6px;">💬 AI 的回應</div>
+      <div style="white-space:pre-line;">${response}</div>
+    </div>
+    <div class="advice-box">
+      <div style="font-weight:700; color:#1565c0; margin-bottom:6px;">🧭 今天可以試試看</div>
+      <div>${advice}</div>
+    </div>
+    <div style="text-align:center; margin-top:16px;">
+      <div class="badge">${badge}</div>
+    </div>
+    <button class="btn" onclick="finish()" style="margin-top:20px;">完成 ✨</button>
+  `;
+}
+
+function finish() {
+  document.getElementById('todayBadge').textContent = BADGES[currentMood];
+  show('step-done');
+}
+
+function resetAll() {
+  currentMood = null;
+  currentLevel = null;
+  currentNote = '';
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('noteSelect').value = '';
+  document.getElementById('noteCustom').value = '';
+  show('step-seat');
+}
+
+/* ================================
+   班級天氣圖
+   ================================ */
+async function showTodayBoard() {
+  show('step-board');
+  const bc = document.getElementById('boardContent');
+  const ht = document.getElementById('historyTable');
+  bc.innerHTML = '<div style="color:#888;">正在載入...</div>';
+  ht.innerHTML = '';
+
+  try {
+    const { data, error } = await supabase
+      .from('mood_records')
+      .select('*')
+      .eq('record_date', new Date().toISOString().slice(0,10))
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      bc.innerHTML = '<div style="color:#888;">今天還沒有人登錄心情喔，快來當第一個！</div>';
+      ht.innerHTML = '';
+      return;
+    }
+
+    // 統計
+    const counts = {};
+    data.forEach(d => { counts[d.mood] = (counts[d.mood]||0)+1; });
+    bc.innerHTML = '';
+    Object.entries(counts).forEach(([k,c]) => {
+      const m = MOODS[k];
+      const chip = document.createElement('div');
+      chip.className = 'weather-chip';
+      chip.innerHTML = `${m.emoji} ${m.name} <strong>${c}</strong> 人`;
+      bc.appendChild(chip);
+    });
+
+    // 表格
+    ht.innerHTML = `
+      <tr><th>座號</th><th>天氣</th><th>強度</th><th>時間</th></tr>
+      ${data.map(d => {
+        const m = MOODS[d.mood];
+        const lv = LEVELS[(d.mood_level||1)-1].label;
+        const t = new Date(d.created_at).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+        return `<tr><td>${d.seat_number}</td><td>${m.emoji} ${m.name}</td><td>${lv}</td><td>${t}</td></tr>`;
+      }).join('')}
+    `;
+  } catch (e) {
+    console.error(e);
+    bc.innerHTML = '<div style="color:#c62828;">載入失敗，請稍後再試。</div>';
+  }
+}
+
+function backToDone() {
+  show('step-done');
+}
+</script>
+</body>
+</html>
