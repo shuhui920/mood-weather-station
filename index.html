@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>早安心情氣象站</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" async></script>
 <style>
   * { box-sizing: border-box; }
   html, body {
@@ -331,28 +331,25 @@
 
 <script>
 /* ================================
-   錯誤提示（方便老師與學生回報）
+   錯誤提示
    ================================ */
 function showError(msg) {
   console.error(msg);
-  const el = document.createElement('div');
+  var el = document.createElement('div');
   el.className = 'error-toast';
   el.textContent = '⚠️ ' + msg;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 6000);
+  setTimeout(function() { el.remove(); }, 6000);
 }
-window.onerror = function(msg, url, line) {
-  showError('程式遇到一點問題，但請繼續玩！（' + msg + '）');
-};
 
 /* ================================
-   資料與設定
+   資料與設定（純 ES5）
    ================================ */
-const SUPABASE_URL = 'https://deebjpgtujatpefucajc.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_voo5n0P60X6L4QGjAUNqLQ_bLW9lIe8';
-let supabase = null;
+var SUPABASE_URL = 'https://deebjpgtujatpefucajc.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_voo5n0P60X6L4QGjAUNqLQ_bLW9lIe8';
+var supabase = null;
 
-const MOODS = {
+var MOODS = {
   sunny:  { emoji:'☀️', name:'大晴天', color:'#fff8e1', desc:'超級開心 / 充滿活力' },
   cloudy: { emoji:'⛅', name:'多雲',    color:'#eceff1', desc:'還不錯 / 平靜' },
   rainy:  { emoji:'🌧️', name:'小雨',    color:'#e3f2fd', desc:'有點悶 / 小難過' },
@@ -361,13 +358,13 @@ const MOODS = {
   moon:   { emoji:'🌙', name:'月亮',    color:'#ede7f6', desc:'很累 / 想安靜' }
 };
 
-const LEVELS = [
+var LEVELS = [
   { value:1, label:'小', desc:'一點點' },
   { value:2, label:'中', desc:'蠻明顯的' },
   { value:3, label:'大', desc:'非常強烈' }
 ];
 
-const RESPONSE_TEMPLATES = {
+var RESPONSE_TEMPLATES = {
   sunny: {
     intro: ['哇，今天你的心裡是大晴天呢！☀️','陽光照進來的感覺真棒！','開心的能量正在你身上閃閃發光！'],
     body: ['這種開心就像太陽一樣，不只能溫暖自己，還可以照亮旁邊的人。','開心的時候，身體會分泌讓人變勇敢的魔法，你今天可以做一件小小的好事。','把這份開心記在心裡，它是你今天的超級能量！'],
@@ -400,7 +397,7 @@ const RESPONSE_TEMPLATES = {
   }
 };
 
-const BADGES = {
+var BADGES = {
   sunny:'☀️ 陽光觀察家',
   cloudy:'⛅ 微風記錄員',
   rainy:'🌧️ 雨滴詩人',
@@ -409,10 +406,10 @@ const BADGES = {
   moon:'🌙 月光守護者'
 };
 
-let currentSeat = null;
-let currentMood = null;
-let currentLevel = null;
-let currentNote = '';
+var currentSeat = null;
+var currentMood = null;
+var currentLevel = null;
+var currentNote = '';
 
 /* ================================
    初始化（安全模式）
@@ -423,91 +420,131 @@ function initSupabase() {
       supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       console.log('Supabase 連線成功');
     } else {
-      // 建立一個假的 supabase，讓遊戲至少能繼續玩
-      supabase = {
-        from: function() {
-          return {
-            select: async function() { return { data: [], error: null }; },
-            insert: async function() { return { data: null, error: null }; }
-          };
-        }
-      };
-      showError('資料庫連線尚未就緒，遊戲可以繼續玩，但紀錄暫時不會儲存。請重新整理頁面再試。');
+      supabase = makeFakeSupabase();
+      showError('資料庫連線尚未就緒，遊戲可以繼續玩，但紀錄暫時不會儲存。');
     }
   } catch (e) {
-    supabase = {
-      from: function() {
-        return {
-          select: async function() { return { data: [], error: null }; },
-          insert: async function() { return { data: null, error: null }; }
-        };
-      }
-    };
+    supabase = makeFakeSupabase();
     showError('資料庫連線遇到問題，遊戲可以繼續玩！');
     console.error(e);
   }
 }
 
+function makeFakeSupabase() {
+  return {
+    from: function() {
+      return {
+        select: function() {
+          return new Promise(function(resolve) { resolve({ data: [], error: null }); });
+        },
+        insert: function() {
+          return new Promise(function(resolve) { resolve({ data: null, error: null }); });
+        }
+      };
+    }
+  };
+}
+
 function buildMoodGrid() {
-  const grid = document.getElementById('moodGrid');
+  var grid = document.getElementById('moodGrid');
+  if (!grid) return;
   grid.innerHTML = '';
-  Object.entries(MOODS).forEach(([key, m]) => {
-    const div = document.createElement('div');
+  var keys = Object.keys(MOODS);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    var m = MOODS[key];
+    var div = document.createElement('div');
     div.className = 'mood-btn';
     div.style.background = m.color;
-    div.innerHTML = '<div class="emoji">'+m.emoji+'</div><div class="name">'+m.name+'</div><div class="hint">'+m.desc+'</div>';
-    div.onclick = function() { selectMood(key, div); };
+    div.innerHTML = '<div class="emoji">' + m.emoji + '</div><div class="name">' + m.name + '</div><div class="hint">' + m.desc + '</div>';
+    div.onclick = (function(k) {
+      return function() { selectMood(k, div); };
+    })(key);
     grid.appendChild(div);
-  });
+  }
 }
 
 function buildLevelGrid() {
-  const grid = document.getElementById('levelGrid');
+  var grid = document.getElementById('levelGrid');
+  if (!grid) return;
   grid.innerHTML = '';
-  LEVELS.forEach(function(l) {
-    const div = document.createElement('div');
+  for (var i = 0; i < LEVELS.length; i++) {
+    var l = LEVELS[i];
+    var div = document.createElement('div');
     div.className = 'level-btn';
-    div.innerHTML = '<div style="font-size:1.4rem;">'+l.label+'</div><div style="font-size:0.85rem;color:#777;margin-top:2px;">'+l.desc+'</div>';
-    div.onclick = function() { selectLevel(l.value, div); };
+    div.innerHTML = '<div style="font-size:1.4rem;">' + l.label + '</div><div style="font-size:0.85rem;color:#777;margin-top:2px;">' + l.desc + '</div>';
+    div.onclick = (function(lv) {
+      return function() { selectLevel(lv.value, div); };
+    })(l);
     grid.appendChild(div);
-  });
+  }
 }
 
-window.addEventListener('DOMContentLoaded', function() {
-  initSupabase();
-  const saved = localStorage.getItem('moodSeat');
-  if (saved) {
-    document.getElementById('seatInput').value = saved;
+function initApp() {
+  try {
+    initSupabase();
+    var saved = localStorage.getItem('moodSeat');
+    if (saved) {
+      document.getElementById('seatInput').value = saved;
+    }
+    buildMoodGrid();
+    buildLevelGrid();
+  } catch (e) {
+    showError('初始化失敗：' + e.message);
+    console.error(e);
   }
-  buildMoodGrid();
-  buildLevelGrid();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
 /* ================================
-   流程控制
+   流程控制（帶防錯）
    ================================ */
 function show(id) {
-  ['step-seat','step-mood','step-detail','step-result','step-done','step-board'].forEach(function(x) {
-    document.getElementById(x).classList.add('hidden');
-  });
-  document.getElementById(id).classList.remove('hidden');
+  try {
+    var ids = ['step-seat','step-mood','step-detail','step-result','step-done','step-board'];
+    for (var i = 0; i < ids.length; i++) {
+      var el = document.getElementById(ids[i]);
+      if (el) el.classList.add('hidden');
+    }
+    var target = document.getElementById(id);
+    if (target) target.classList.remove('hidden');
+  } catch (e) {
+    console.error('show() 錯誤:', e);
+    alert('切換畫面時遇到問題，請重新整理頁面再試。');
+  }
 }
 
 function goToMood() {
-  const val = parseInt(document.getElementById('seatInput').value, 10);
-  if (!val || val < 1 || val > 99) {
-    alert('請輸入 1~99 的座號喔！'); return;
+  try {
+    var input = document.getElementById('seatInput');
+    var val = parseInt(input.value, 10);
+    if (!val || val < 1 || val > 99) {
+      alert('請輸入 1~99 的座號喔！'); return;
+    }
+    currentSeat = val;
+    try {
+      localStorage.setItem('moodSeat', val);
+    } catch (e2) {}
+    show('step-mood');
+  } catch (e) {
+    alert('發生錯誤：' + e.message);
+    console.error(e);
   }
-  currentSeat = val;
-  localStorage.setItem('moodSeat', val);
-  show('step-mood');
 }
 
 function backToSeat() { show('step-seat'); }
 
 function selectMood(key, el) {
   currentMood = key;
-  document.querySelectorAll('.mood-btn').forEach(function(b) { b.classList.remove('selected'); });
+  var buttons = document.querySelectorAll('.mood-btn');
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].classList.remove('selected');
+  }
   el.classList.add('selected');
   setTimeout(function() { show('step-detail'); }, 250);
 }
@@ -516,7 +553,10 @@ function backToMood() { show('step-mood'); }
 
 function selectLevel(val, el) {
   currentLevel = val;
-  document.querySelectorAll('.level-btn').forEach(function(b) { b.classList.remove('selected'); });
+  var buttons = document.querySelectorAll('.level-btn');
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].classList.remove('selected');
+  }
   el.classList.add('selected');
 }
 
@@ -528,41 +568,43 @@ function pickRandom(arr) {
 }
 
 function generateResponse(mood, level, note) {
-  const t = RESPONSE_TEMPLATES[mood];
-  const intro = pickRandom(t.intro);
-  const body = pickRandom(t.body);
-  const advice = pickRandom(t.advice);
+  var t = RESPONSE_TEMPLATES[mood];
+  var intro = pickRandom(t.intro);
+  var body = pickRandom(t.body);
+  var advice = pickRandom(t.advice);
 
-  let levelText = '';
+  var levelText = '';
   if (level === 1) levelText = '雖然只有一點點，但我們都看到了。';
   if (level === 2) levelText = '這個感覺蠻明顯的，值得被好好對待。';
   if (level === 3) levelText = '這個感覺非常強烈，今天請特別照顧自己。';
 
-  let noteText = '';
-  if (note) noteText = '\n\n你說「'+note+'」，謝謝你願意說出來。';
+  var noteText = '';
+  if (note) noteText = '\n\n你說「' + note + '」，謝謝你願意說出來。';
 
-  const response = intro+'\n\n'+body+' '+levelText+noteText+'\n\n🌟 記得：不管什麼天氣，你都是值得被愛的孩子。';
+  var response = intro + '\n\n' + body + ' ' + levelText + noteText + '\n\n🌟 記得：不管什麼天氣，你都是值得被愛的孩子。';
   return { response: response, advice: advice };
 }
 
-async function submitMood() {
+function submitMood() {
   if (!currentLevel) {
     alert('請選擇感覺有多強喔！'); return;
   }
-  const noteSel = document.getElementById('noteSelect').value;
-  const noteCustom = document.getElementById('noteCustom').value.trim();
+  var noteSel = document.getElementById('noteSelect').value;
+  var noteCustom = document.getElementById('noteCustom').value.trim();
   currentNote = noteCustom || noteSel || '';
 
   show('step-result');
-  const resEl = document.getElementById('resultContent');
+  var resEl = document.getElementById('resultContent');
   resEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>🪄 正在為你調製今日回應...</div></div>';
 
-  const { response, advice } = generateResponse(currentMood, currentLevel, currentNote);
+  var result = generateResponse(currentMood, currentLevel, currentNote);
+  var response = result.response;
+  var advice = result.advice;
 
-  // 儲存到 Supabase（即使失敗也不中斷遊戲）
+  // 儲存到 Supabase（Promise 寫法，不阻塞畫面）
   try {
     if (supabase && supabase.from) {
-      await supabase.from('mood_records').insert({
+      supabase.from('mood_records').insert({
         seat_number: currentSeat,
         mood: currentMood,
         mood_level: currentLevel,
@@ -570,32 +612,38 @@ async function submitMood() {
         ai_response: response,
         advice: advice,
         record_date: new Date().toISOString().slice(0,10)
+      }).then(function() {
+        console.log('儲存成功');
+      }).catch(function(err) {
+        console.error('儲存失敗', err);
       });
     }
   } catch (e) {
     console.error('儲存失敗', e);
   }
 
-  const m = MOODS[currentMood];
-  const badge = BADGES[currentMood];
+  var m = MOODS[currentMood];
+  var badge = BADGES[currentMood];
 
-  resEl.innerHTML =
+  var html =
     '<div style="text-align:center; margin-bottom:12px;">' +
-      '<div style="font-size:3.5rem;">'+m.emoji+'</div>' +
-      '<div style="font-size:1.2rem; color:#555; margin-top:4px;">'+m.name+' · '+LEVELS[currentLevel-1].label+'</div>' +
+      '<div style="font-size:3.5rem;">' + m.emoji + '</div>' +
+      '<div style="font-size:1.2rem; color:#555; margin-top:4px;">' + m.name + ' · ' + LEVELS[currentLevel-1].label + '</div>' +
     '</div>' +
     '<div class="response-box">' +
       '<div style="font-weight:700; color:#e65100; margin-bottom:6px;">💬 AI 的回應</div>' +
-      '<div style="white-space:pre-line;">'+response.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>' +
+      '<div style="white-space:pre-line;">' + response.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
     '</div>' +
     '<div class="advice-box">' +
       '<div style="font-weight:700; color:#1565c0; margin-bottom:6px;">🧭 今天可以試試看</div>' +
-      '<div>'+advice+'</div>' +
+      '<div>' + advice + '</div>' +
     '</div>' +
     '<div style="text-align:center; margin-top:16px;">' +
-      '<div class="badge">'+badge+'</div>' +
+      '<div class="badge">' + badge + '</div>' +
     '</div>' +
     '<button class="btn" onclick="finish()" style="margin-top:20px;">完成 ✨</button>';
+
+  resEl.innerHTML = html;
 }
 
 function finish() {
@@ -607,8 +655,10 @@ function resetAll() {
   currentMood = null;
   currentLevel = null;
   currentNote = '';
-  document.querySelectorAll('.mood-btn').forEach(function(b) { b.classList.remove('selected'); });
-  document.querySelectorAll('.level-btn').forEach(function(b) { b.classList.remove('selected'); });
+  var mb = document.querySelectorAll('.mood-btn');
+  for (var i = 0; i < mb.length; i++) mb[i].classList.remove('selected');
+  var lb = document.querySelectorAll('.level-btn');
+  for (var i = 0; i < lb.length; i++) lb[i].classList.remove('selected');
   document.getElementById('noteSelect').value = '';
   document.getElementById('noteCustom').value = '';
   show('step-seat');
@@ -617,50 +667,63 @@ function resetAll() {
 /* ================================
    班級天氣圖
    ================================ */
-async function showTodayBoard() {
+function showTodayBoard() {
   show('step-board');
-  const bc = document.getElementById('boardContent');
-  const ht = document.getElementById('historyTable');
+  var bc = document.getElementById('boardContent');
+  var ht = document.getElementById('historyTable');
   bc.innerHTML = '<div style="color:#888;">正在載入...</div>';
   ht.innerHTML = '';
 
-  try {
-    let data = [];
-    if (supabase && supabase.from) {
-      const result = await supabase
-        .from('mood_records')
-        .select('*')
-        .eq('record_date', new Date().toISOString().slice(0,10))
-        .order('created_at', { ascending: true });
-      if (result.data) data = result.data;
-    }
-
+  function renderData(data) {
     if (!data || data.length === 0) {
       bc.innerHTML = '<div style="color:#888;">今天還沒有人登錄心情喔，快來當第一個！</div>';
       ht.innerHTML = '';
       return;
     }
 
-    const counts = {};
-    data.forEach(function(d) { counts[d.mood] = (counts[d.mood]||0)+1; });
+    var counts = {};
+    for (var i = 0; i < data.length; i++) {
+      var d = data[i];
+      counts[d.mood] = (counts[d.mood] || 0) + 1;
+    }
     bc.innerHTML = '';
-    Object.entries(counts).forEach(function(entry) {
-      var k = entry[0], c = entry[1];
+    var countKeys = Object.keys(counts);
+    for (var i = 0; i < countKeys.length; i++) {
+      var k = countKeys[i];
+      var c = counts[k];
       var m = MOODS[k];
       var chip = document.createElement('div');
       chip.className = 'weather-chip';
-      chip.innerHTML = m.emoji+' '+m.name+' <strong>'+c+'</strong> 人';
+      chip.innerHTML = m.emoji + ' ' + m.name + ' <strong>' + c + '</strong> 人';
       bc.appendChild(chip);
-    });
+    }
 
     var rows = '<tr><th>座號</th><th>天氣</th><th>強度</th><th>時間</th></tr>';
-    data.forEach(function(d) {
+    for (var i = 0; i < data.length; i++) {
+      var d = data[i];
       var m = MOODS[d.mood];
-      var lv = LEVELS[(d.mood_level||1)-1].label;
-      var t = new Date(d.created_at).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-      rows += '<tr><td>'+d.seat_number+'</td><td>'+m.emoji+' '+m.name+'</td><td>'+lv+'</td><td>'+t+'</td></tr>';
-    });
+      var lv = LEVELS[(d.mood_level || 1) - 1].label;
+      var t = new Date(d.created_at).toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
+      rows += '<tr><td>' + d.seat_number + '</td><td>' + m.emoji + ' ' + m.name + '</td><td>' + lv + '</td><td>' + t + '</td></tr>';
+    }
     ht.innerHTML = rows;
+  }
+
+  try {
+    if (supabase && supabase.from) {
+      supabase.from('mood_records')
+        .select('*')
+        .eq('record_date', new Date().toISOString().slice(0,10))
+        .order('created_at', { ascending: true })
+        .then(function(result) {
+          renderData(result.data || []);
+        }).catch(function(err) {
+          console.error(err);
+          bc.innerHTML = '<div style="color:#c62828;">載入失敗，請稍後再試。</div>';
+        });
+    } else {
+      renderData([]);
+    }
   } catch (e) {
     console.error(e);
     bc.innerHTML = '<div style="color:#c62828;">載入失敗，請稍後再試。</div>';
