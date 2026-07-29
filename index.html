@@ -355,6 +355,39 @@ var LEVELS = [
   { value:3, label:'大', desc:'非常強烈' }
 ];
 
+var CLOSINGS = {
+  sunny: [
+    '☀️ 你值得享受這份開心，不需要任何理由。',
+    '☀️ 這份陽光是你應得的，好好收著。',
+    '☀️ 今天你是自己的小太陽，很亮，很好。'
+  ],
+  cloudy: [
+    '⛅ 不需要每天都很精彩，這樣的你已經足夠。',
+    '⛅ 平靜也是一種力量，慢慢地就很好。',
+    '⛅ 你不需要證明什麼，現在這樣就很好。'
+  ],
+  rainy: [
+    '🌧️ 難過的時候，記得有人願意陪你。',
+    '🌧️ 你不需要馬上沒事，我們會等你。',
+    '🌧️ 哭也沒關係，這裡是安全的。'
+  ],
+  thunder: [
+    '⛈️ 你的界線很重要，你的感受很重要。',
+    '⛈️ 生氣的你是真實的，這不需要道歉。',
+    '⛈️ 你不需要為了別人，壓掉自己的聲音。'
+  ],
+  rainbow: [
+    '🌈 期待本身就是禮物，不管結果怎樣。',
+    '🌈 懷抱希望的你是勇敢的。',
+    '🌈 今天有夢想的你很美，明天也一樣。'
+  ],
+  moon: [
+    '🌙 累了就休息，不需要任何人批准。',
+    '🌙 安靜的你也很珍貴，不需要強迫發光。',
+    '🌙 今天可以只做自己，這樣就夠了。'
+  ]
+};
+
 var RESPONSE_TEMPLATES = {
   sunny: {
     intro: [
@@ -737,7 +770,8 @@ function generateResponse(mood, level, note) {
   var noteText = '';
   if (note) noteText = '\n\n你說「' + note + '」，謝謝你願意說出來。';
 
-  var response = intro + '\n\n' + body + ' ' + levelText + noteText + '\n\n🌟 記得：不管什麼天氣，你都是值得被愛的孩子。';
+  var closing = pickRandom(CLOSINGS[mood]);
+  var response = intro + '\n\n' + body + ' ' + levelText + noteText + '\n\n' + closing;
   return { response: response, advice: advice };
 }
 
